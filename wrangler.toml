@@ -1,0 +1,7 @@
+name = "catchall-subdomain"
+main = "src/index.js"
+compatibility_date = "2024-02-08"
+
+routes = [
+  { pattern = "*.shamiltp.me/*", zone_name = "shamiltp.me" }
+]
