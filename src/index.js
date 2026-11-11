@@ -24,12 +24,11 @@ export default {
     try {
       const response = await fetch(request);
 
-      // 1. Differentiate between Tunnel Down and Uncreated Subdomain
-      if (response.status === 530) {
-        // Read the HTML of the Cloudflare error page to find the specific error code
+      // 1. Differentiate between Tunnel Down / Bad Gateway (530 or 502) and Uncreated Subdomain
+      if (response.status === 530 || response.status === 502) {
         const errorText = await response.clone().text();
 
-        // Error 1016 = Origin DNS Error (Caused by our dummy CNAME for uncreated subdomains)
+        // If it's a DNS error 1016, it's an uncreated subdomain
         if (errorText.includes('1016')) {
           return new Response(notFoundHTML, {
             status: 404,
@@ -37,14 +36,14 @@ export default {
           });
         }
 
-        // Otherwise (e.g., Error 1033), the Lenovo tunnel is actually down
+        // Otherwise, the Lenovo tunnel or local upstream server is down/unreachable
         return new Response(offlineHTML, {
           status: 503,
           headers: { 'content-type': 'text/html;charset=UTF-8' },
         });
       }
 
-      // 2. If Nginx explicitly returns 404, or standard timeout occurs
+      // 2. If the Subdomain does not exist (404, 522, 523)
       if (response.status === 404 || response.status === 522 || response.status === 523) {
         return new Response(notFoundHTML, {
           status: 404,
@@ -52,11 +51,10 @@ export default {
         });
       }
 
-      // 3. If Lenovo is online and subdomain exists, pass traffic normally
+      // 3. Pass traffic normally if everything is working
       return response;
       
     } catch (err) {
-      // Fallback if the fetch fails entirely
       return new Response(notFoundHTML, {
         status: 404,
         headers: { 'content-type': 'text/html;charset=UTF-8' },
