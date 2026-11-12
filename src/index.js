@@ -57,7 +57,7 @@ const notFoundHTML = `<!DOCTYPE html>
       
       const container = document.getElementById('main-container');
       container.style.borderColor = theme.border;
-    }, 1000); // 3 seconds gives the eyes time to appreciate each transition
+    }, 1500); // 3 seconds gives the eyes time to appreciate each transition
   }
 
   document.addEventListener("DOMContentLoaded", initThemeTransitions);
